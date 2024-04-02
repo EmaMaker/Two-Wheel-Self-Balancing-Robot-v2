@@ -58,6 +58,8 @@ void setup() {
   //pitchCtrl.setWindUpLimits(-10, 10);
   pitchCtrl.setSampleTime(1);
   pitchCtrl.start();
+
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 void setup1(){
