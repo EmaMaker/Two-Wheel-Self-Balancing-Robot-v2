@@ -1,6 +1,6 @@
 #include <ArduPID.h>
 
-ArduPID myController;
+ArduPID pitchCtrl;
 
 #define MOT_DX_STEP 19
 #define MOT_DX_DIR 18
@@ -53,11 +53,11 @@ void setup() {
     update_imu();
   }
 
-  myController.begin(&input, &output, &setpoint, KP, KI, KD, P_ON_E, FORWARD);
-  myController.setOutputLimits(-MAX_VELOCITY, MAX_VELOCITY);  // double of max torque motors can exhert
-  //myController.setWindUpLimits(-10, 10);
-  myController.setSampleTime(2);
-  myController.start();
+  pitchCtrl.begin(&input, &output, &setpoint, KP, KI, KD, P_ON_E, FORWARD);
+  pitchCtrl.setOutputLimits(-MAX_VELOCITY, MAX_VELOCITY);  // double of max torque motors can exhert
+  //pitchCtrl.setWindUpLimits(-10, 10);
+  pitchCtrl.setSampleTime(1);
+  pitchCtrl.start();
 }
 
 void setup1(){
@@ -97,7 +97,7 @@ void loop() {
 
   update_imu();
   // I also modified the ArduPID library to use compute as a boolean. If calculations were done, it returns true. If not enough time has elapsed, it returns false
-  if(myController.compute()){
+  if(pitchCtrl.compute()){
     input = pitch;
 
     // Keeping it here
