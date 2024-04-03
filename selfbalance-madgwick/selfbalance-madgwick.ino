@@ -54,7 +54,7 @@ void setup() {
   }
 
   pitchCtrl.begin(&input, &output, &setpoint, KP, KI, KD, P_ON_E, FORWARD);
-  pitchCtrl.setOutputLimits(-MAX_VELOCITY, MAX_VELOCITY);  // double of max torque motors can exhert
+  pitchCtrl.setOutputLimits(-MAX_VELOCITY, MAX_VELOCITY); 
   //pitchCtrl.setWindUpLimits(-10, 10);
   pitchCtrl.setSampleTime(1);
   pitchCtrl.start();
@@ -88,19 +88,17 @@ void loop1(){
   }
 }
 
-unsigned long last_time = millis(), current_time = millis(), time_diff;
 double frequency = 0;
 unsigned long half_period0 = 0;
 double velocity = 0;
 
 void loop() {
-  current_time = millis();
-  time_diff = current_time - last_time;
-
   update_imu();
+
+  input = pitch;
+  
   // I also modified the ArduPID library to use compute as a boolean. If calculations were done, it returns true. If not enough time has elapsed, it returns false
   if(pitchCtrl.compute()){
-    input = pitch;
 
     // Keeping it here
     /*
@@ -139,8 +137,6 @@ void loop() {
     Serial.print(frequency);
     Serial.print(" | ");
     Serial.println(half_period0);*/
-
-    last_time = current_time;
   }
 
 }
