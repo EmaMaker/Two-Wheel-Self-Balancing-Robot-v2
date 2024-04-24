@@ -4,11 +4,12 @@
 
 //#define PRINT_ANGLES
 //#define PRINT_QUAT
-//#define PERFORM_CALIBRATION //Comment to disable startup calibration
+#define PERFORM_CALIBRATION //Comment to disable startup calibration
 
 #define IMU_ADDRESS 0x68    //Change to the address of the IMU
 MPU6050 IMU;               //Change to the name of any supported IMU!
 
+calData calib = {0};
 AccelData IMUAccel;    //Sensor data
 GyroData IMUGyro;
 Madgwick filter;
@@ -17,14 +18,6 @@ void setup_imu(){
   // TODO: write my own kalman filter
   Wire.begin();
   Wire.setClock(400000); //400khz clock
-
-  calData calib;
-  calib.accelBias[0]=-0.02;
-  calib.accelBias[1]=-0.01;
-  calib.accelBias[2]=0.16;
-  calib.gyroBias[0] = -2.89;
-  calib.gyroBias[1] = -3.59;
-  calib.gyroBias[2] = -0.66;
 
   int err = IMU.init(calib, IMU_ADDRESS);
   if (err != 0) {
@@ -43,9 +36,11 @@ void setup_imu(){
     }
   }
 
+
+
 #ifdef PERFORM_CALIBRATION
   Serial.println("Keep IMU level.");
-  delay(5000);
+  delay(500);
   IMU.calibrateAccelGyro(&calib);
   Serial.println("Calibration done!");
   Serial.println("Accel biases X/Y/Z: ");
@@ -60,8 +55,7 @@ void setup_imu(){
   Serial.print(calib.gyroBias[1]);
   Serial.print(", ");
   Serial.println(calib.gyroBias[2]);
-  delay(5000);
-
+  delay(500);
   IMU.init(calib, IMU_ADDRESS);
 #endif
   filter.begin(0.2f);
