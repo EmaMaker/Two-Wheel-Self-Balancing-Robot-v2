@@ -22,18 +22,25 @@ constexpr double KP = 42;
 constexpr double KI = KP * 10.8852;
 constexpr double KD = 0.3; 
 
-// IMU little bit tilted
-// TODO: Implement an outer control loop for angular velocity. But that requires encoders on the motors
-// TODO: try to achieve it crudely by just using a PI controller on the velocity given by the PID balance controller
+// PI constants for outer velocity control loop
+constexpr double KP_vel = 0.0025;
+constexpr double KI_vel = 0.0005;
+
 float setpoint = 0.0;
 float output = 0;
 float input = 0;
+
+float vel_setpoint = 0.0;
+float vel_input = 0.0;
+
 
 float yaw{ 0 }, pitch{ 0 }, roll{ 0 };
 
 
 
 QuickPID pitchCtrl(&input, &output, &setpoint, KP, KI, KD, pitchCtrl.pMode::pOnError, pitchCtrl.dMode::dOnMeas, pitchCtrl.iAwMode::iAwCondition, pitchCtrl.Action::reverse);
+// TODO: a little deadzone when the input is almost 0, just to avoid unnecessary "nervous" control and eventual oscillations
+QuickPID velCtrl(&output, &setpoint, &vel_setpoint, KP_vel, KI_vel, 0, velCtrl.pMode::pOnMeas, velCtrl.dMode::dOnMeas, velCtrl.iAwMode::iAwCondition, velCtrl.Action::direct);
 
 void setup() {
   Serial.begin(9600);
@@ -56,6 +63,10 @@ void setup() {
   pitchCtrl.SetOutputLimits(-MAX_VELOCITY, MAX_VELOCITY);
   pitchCtrl.SetMode(pitchCtrl.Control::automatic);
   pitchCtrl.SetSampleTimeUs(1000);
+
+  velCtrl.SetOutputLimits(-0.15, 0.15);
+  velCtrl.SetMode(velCtrl.Control::automatic);
+  velCtrl.SetSampleTimeUs(10000);
 
   digitalWrite(LED_BUILTIN, LOW);
 }
@@ -117,13 +128,17 @@ uint32_t current_time = millis(), last_time = millis();
 void loop() {
   update_imu();
 
+  velCtrl.Compute();
+
   input = pitch;
-  //if(abs(input -setpoint) <= 0.01) input = setpoint;
+
+  Serial.println(setpoint);
   
   // I also modified the ArduPID library to use compute as a boolean. If calculations were done, it returns true. If not enough time has elapsed, it returns false
   if(pitchCtrl.Compute()){
 
     double tvelocity = output;
+    
     tvelocity = tvelocity / WHEEL_RADIUS * 180 / PI;
     frequency = tvelocity *  0.1125;
     half_period0 = 1000000 / (2*frequency);
