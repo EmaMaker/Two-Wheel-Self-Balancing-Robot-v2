@@ -23,12 +23,12 @@ constexpr double KI = KP * 10.8852;
 constexpr double KD = 0.3; 
 
 // PI constants for outer velocity control loop
-constexpr double KP_vel = 0.0025;
-constexpr double KI_vel = 0.0005;
+constexpr double KP_vel = 0.01;
+constexpr double KI_vel = 0.005;
 
-float setpoint = 0.0;
-float output = 0;
-float input = 0;
+float angle_setpoint = 0.0;
+float angle_output = 0;
+float angle_input = 0;
 
 float vel_setpoint = 0.0;
 float vel_input = 0.0;
@@ -38,9 +38,9 @@ float yaw{ 0 }, pitch{ 0 }, roll{ 0 };
 
 
 
-QuickPID pitchCtrl(&input, &output, &setpoint, KP, KI, KD, pitchCtrl.pMode::pOnError, pitchCtrl.dMode::dOnMeas, pitchCtrl.iAwMode::iAwCondition, pitchCtrl.Action::reverse);
+QuickPID pitchCtrl(&angle_input, &angle_output, &angle_setpoint, KP, KI, KD, pitchCtrl.pMode::pOnError, pitchCtrl.dMode::dOnMeas, pitchCtrl.iAwMode::iAwCondition, pitchCtrl.Action::reverse);
 // TODO: a little deadzone when the input is almost 0, just to avoid unnecessary "nervous" control and eventual oscillations
-QuickPID velCtrl(&output, &setpoint, &vel_setpoint, KP_vel, KI_vel, 0, velCtrl.pMode::pOnMeas, velCtrl.dMode::dOnMeas, velCtrl.iAwMode::iAwCondition, velCtrl.Action::direct);
+QuickPID velCtrl(&angle_output, &angle_setpoint, &vel_setpoint, KP_vel, KI_vel, 0, velCtrl.pMode::pOnMeas, velCtrl.dMode::dOnMeas, velCtrl.iAwMode::iAwCondition, velCtrl.Action::direct);
 
 void setup() {
   Serial.begin(9600);
@@ -55,7 +55,7 @@ void setup() {
 
   // Let the initial error from madgwick filter discharge without affecting the integral term of the PID
   unsigned long t = millis();
-  while (millis() - t < 5000) {
+  while (millis() - t < 2000) {
     update_imu();
   }
 
@@ -64,7 +64,7 @@ void setup() {
   pitchCtrl.SetMode(pitchCtrl.Control::automatic);
   pitchCtrl.SetSampleTimeUs(1000);
 
-  velCtrl.SetOutputLimits(-0.15, 0.15);
+  velCtrl.SetOutputLimits(-0.35, 0.35);
   velCtrl.SetMode(velCtrl.Control::automatic);
   velCtrl.SetSampleTimeUs(10000);
 
@@ -122,22 +122,17 @@ void loop1(){
 double frequency = 0;
 int32_t half_period0 = 0;
 double velocity = 0;
-
+    
 uint32_t current_time = millis(), last_time = millis();
 
 void loop() {
   update_imu();
-
+  
   velCtrl.Compute();
 
-  input = pitch;
-
-  Serial.println(setpoint);
-  
-  // I also modified the ArduPID library to use compute as a boolean. If calculations were done, it returns true. If not enough time has elapsed, it returns false
+  angle_input = pitch;
   if(pitchCtrl.Compute()){
-
-    double tvelocity = output;
+    double tvelocity = angle_output;
     
     tvelocity = tvelocity / WHEEL_RADIUS * 180 / PI;
     frequency = tvelocity *  0.1125;
