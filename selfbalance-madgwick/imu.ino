@@ -4,7 +4,7 @@
 
 //#define PRINT_ANGLES
 //#define PRINT_QUAT
-// #define PERFORM_CALIBRATION //Comment to disable startup calibration
+#define PERFORM_CALIBRATION //Comment to disable startup calibration
 
 #define IMU_ADDRESS 0x68    //Change to the address of the IMU
 MPU6050 IMU;               //Change to the name of any supported IMU!
@@ -36,26 +36,10 @@ void setup_imu(){
     }
   }
 
-
-
 #ifdef PERFORM_CALIBRATION
-  Serial.println("Keep IMU level.");
-  delay(500);
+  delay(1500);
   IMU.calibrateAccelGyro(&calib);
-  Serial.println("Calibration done!");
-  Serial.println("Accel biases X/Y/Z: ");
-  Serial.print(calib.accelBias[0]);
-  Serial.print(", ");
-  Serial.print(calib.accelBias[1]);
-  Serial.print(", ");
-  Serial.println(calib.accelBias[2]);
-  Serial.println("Gyro biases X/Y/Z: ");
-  Serial.print(calib.gyroBias[0]);
-  Serial.print(", ");
-  Serial.print(calib.gyroBias[1]);
-  Serial.print(", ");
-  Serial.println(calib.gyroBias[2]);
-  delay(500);
+  delay(1500);
   IMU.init(calib, IMU_ADDRESS);
 #endif
   filter.begin(0.2f);
