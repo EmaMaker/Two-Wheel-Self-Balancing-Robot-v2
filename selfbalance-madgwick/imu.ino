@@ -4,7 +4,7 @@
 
 //#define PRINT_ANGLES
 //#define PRINT_QUAT
-#define PERFORM_CALIBRATION //Comment to disable startup calibration
+// #define PERFORM_CALIBRATION //Comment to disable startup calibration
 
 #define IMU_ADDRESS 0x68    //Change to the address of the IMU
 MPU6050 IMU;               //Change to the name of any supported IMU!
